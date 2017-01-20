@@ -32,9 +32,8 @@ spec:
       - name: node-exporter
         image: quay.io/prometheus/node-exporter:v0.13.0
         ports:
-        - containerPort: 9100
-          hostPort: 9100
-          name: http
+        - name: http
+          containerPort: 9100
         livenessProbe:
           httpGet:
             path: /
