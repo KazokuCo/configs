@@ -8,7 +8,6 @@ spec:
   # type: NodePort
   ports:
   - name: redis
-    protocol: TCP
     port: 6379
     # nodePort: 32637
 ---
