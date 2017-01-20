@@ -10,7 +10,7 @@ metadata:
 spec:
   clusterIP: None
   ports:
-  - name: scrape
+  - name: http
     port: 9100
     protocol: TCP
   selector:
@@ -34,6 +34,10 @@ spec:
         ports:
         - containerPort: 9100
           hostPort: 9100
-          name: scrape
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
       hostNetwork: true
       hostPID: true

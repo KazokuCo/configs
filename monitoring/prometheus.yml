@@ -166,6 +166,10 @@ spec:
         ports:
         - name: http
           containerPort: 9090
+        livenessProbe:
+          httpGet:
+            path: /version
+            port: http
         volumeMounts:
         - name: prometheus-config
           mountPath: /etc/prometheus
