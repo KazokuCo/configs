@@ -39,10 +39,7 @@ spec:
         - name: GF_DATABASE_NAME
           value: grafana
         - name: GF_DATABASE_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: postgresql
-              key: host
+          value: postgresql.default.svc.cluster.local
         - name: GF_DATABASE_USER
           valueFrom:
             secretKeyRef:
