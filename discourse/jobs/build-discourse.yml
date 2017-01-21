@@ -1,0 +1,127 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: build-discourse
+spec:
+  template:
+    metadata:
+      name: build-discourse
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: build-discourse
+        image: buildpack-deps:jessie-scm
+        imagePullPolicy: Always
+        args:
+        - bash
+        - -c
+        - |-
+          #!/bin/bash
+          set -e
+          
+          # Install dependencies.
+          apt-get update
+          apt-get install -y apt-transport-https dnsutils
+          
+          # Install Docker.
+          curl -s http://yum.dockerproject.org/gpg | apt-key add -
+          echo "deb https://apt.dockerproject.org/repo/ debian-jessie main" >> /etc/apt/sources.list
+          apt-get update
+          apt-get install -y docker-engine
+          
+          # Because Docker is a bitch about protocol versions, and protocol versions have an
+          # undefined relationship with client versions, just say fuck it and symlink the host's
+          # docker binary over ours. This isn't the right way to do it, but the worst that can
+          # happen is that our builds break until fixed.
+          ln -sf /usr/local/bin/docker /usr/bin/docker
+          
+          # Symlink dockercfg so we can push to ECR from a container.
+          ln -s /dockercfg/.dockercfg /root/.dockercfg
+          
+          # Build Discourse using the official bootstrapper.
+          git clone https://github.com/discourse/discourse_docker /srv/discourse_docker
+          perl -pe 's/\${([_A-Z]+)}/ $ENV{$1} /e' < /srv/discourse_config/web.yml > /srv/discourse_docker/containers/web.yml
+          cat /srv/discourse_docker/containers/web.yml
+          
+          DNS_SERVER=$(dig +short kube-dns.kube-system.svc.cluster.local)
+          cd /srv/discourse_docker && ./launcher bootstrap web --docker-args "--dns $DNS_SERVER"
+
+          HOST=000226360694.dkr.ecr.us-west-1.amazonaws.com
+          docker tag local_discourse/web $HOST/discourse
+          docker push $HOST/discourse
+        env:
+        - name: DISCOURSE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: discourse
+              key: version
+        - name: DISCOURSE_IMAGE_SUFFIX
+          valueFrom:
+            configMapKeyRef:
+              name: discourse
+              key: version
+        - name: DISCOURSE_KAZAMATSURI_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.kazamatsuri
+              key: db.name
+        - name: DISCOURSE_KAZAMATSURI_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.kazamatsuri
+              key: db.username
+        - name: DISCOURSE_KAZAMATSURI_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: discourse.kazamatsuri
+              key: db.password
+        - name: DISCOURSE_ROKKENJIMA_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.rokkenjima
+              key: db.name
+        - name: DISCOURSE_ROKKENJIMA_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.rokkenjima
+              key: db.username
+        - name: DISCOURSE_ROKKENJIMA_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: discourse.rokkenjima
+              key: db.password
+        - name: DISCOURSE_SMTP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: username
+        - name: DISCOURSE_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: password
+        volumeMounts:
+        - name: discourse-config
+          mountPath: /srv/discourse_config
+          readOnly: true
+        - name: dockercfg
+          mountPath: /dockercfg
+          readOnly: true
+        - name: docker-bin
+          mountPath: /usr/local/bin/docker
+          readOnly: true
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: discourse-config
+        configMap:
+          name: discourse
+      - name: dockercfg
+        secret:
+          secretName: ecr
+      - name: docker-bin
+        hostPath:
+          path: /usr/bin/docker
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
