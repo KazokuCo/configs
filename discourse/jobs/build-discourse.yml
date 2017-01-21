@@ -48,7 +48,9 @@ spec:
 
           HOST=000226360694.dkr.ecr.us-west-1.amazonaws.com
           docker tag local_discourse/web $HOST/discourse
+          docker tag local_discourse/web $HOST/discourse:${DISCOURSE_VERSION}${DISCOURSE_IMAGE_SUFFIX}
           docker push $HOST/discourse
+          docker push $HOST/discourse:${DISCOURSE_VERSION}${DISCOURSE_IMAGE_SUFFIX}
         env:
         - name: DISCOURSE_VERSION
           valueFrom:
@@ -59,7 +61,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: discourse
-              key: version
+              key: suffix
         - name: DISCOURSE_KAZAMATSURI_DB_NAME
           valueFrom:
             secretKeyRef:
