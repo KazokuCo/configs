@@ -45,8 +45,8 @@ spec:
           
           DNS_SERVER=$(dig +short kube-dns.kube-system.svc.cluster.local)
           cd /srv/discourse_docker && ./launcher bootstrap web --docker-args "--dns $DNS_SERVER"
-
-          HOST=000226360694.dkr.ecr.us-west-1.amazonaws.com
+          
+          HOST=000226360694.dkr.ecr.us-east-1.amazonaws.com
           docker tag local_discourse/web $HOST/discourse
           docker tag local_discourse/web $HOST/discourse:${DISCOURSE_VERSION}${DISCOURSE_IMAGE_SUFFIX}
           docker push $HOST/discourse

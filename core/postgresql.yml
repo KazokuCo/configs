@@ -4,7 +4,7 @@ metadata:
   name: postgresql
 spec:
   type: ExternalName
-  externalName: production.ccjw3p3gdvud.us-west-1.rds.amazonaws.com
+  externalName: db.cbjczdu1upqw.us-east-1.rds.amazonaws.com
   ports:
   - name: postgresql
     port: 5432
