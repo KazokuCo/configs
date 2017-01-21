@@ -125,12 +125,10 @@ metadata:
 spec:
   selector:
     app: prometheus
-  type: NodePort
   ports:
   - name: prometheus
     protocol: TCP
     port: 9090
-    nodePort: 30900
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
