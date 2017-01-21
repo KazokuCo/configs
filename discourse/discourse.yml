@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: discourse
+spec:
+  selector:
+    app: discourse
+  ports:
+  - name: http
+    port: 80
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: discourse
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: discourse
+    spec:
+      containers:
+      - name: discourse
+        image: 000226360694.dkr.ecr.us-east-1.amazonaws.com/discourse:v1.8.0.beta2-1
+        imagePullPolicy: Always
+        command:
+        - bash
+        - -c
+        - |-
+          #!/bin/bash
+          set -e
+          chown discourse:www-data /shared/{uploads,backups}
+          exec /sbin/boot
+        env:
+        - name: UNICORN_WORKERS
+          value: "4"
+        - name: UNICORN_SIDEKIQS
+          value: "5"
+        - name: DISCOURSE_HOSTNAME
+          value: forum.kazamatsuri.org
+        - name: DISCOURSE_DEVELOPER_EMAILS
+          value: uppfinnarn@gmail.com
+        - name: DISCOURSE_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.kazamatsuri
+              key: db.name
+        - name: DISCOURSE_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.kazamatsuri
+              key: db.username
+        - name: DISCOURSE_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: discourse.kazamatsuri
+              key: db.password
+        - name: DISCOURSE_DB_HOST
+          value: postgresql.default.svc.cluster.local
+        - name: DISCOURSE_DB_PORT
+          value: '5432'
+        - name: DISCOURSE_DB_SOCKET
+          value: ''
+        - name: DISCOURSE_DB_POOL
+          value: "50"
+        - name: DISCOURSE_DB_TIMEOUT
+          value: "5000"
+        - name: DISCOURSE_REDIS_HOST
+          value: redis.default.svc.cluster.local
+        - name: DISCOURSE_SMTP_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: host
+        - name: DISCOURSE_SMTP_PORT
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: port
+        - name: DISCOURSE_SMTP_USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: username
+        - name: DISCOURSE_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: smtp
+              key: password
+        - name: RAILS_ENV
+          value: production
+        - name: RUBY_GLOBAL_METHOD_CACHE_SIZE
+          value: '131072'
+        - name: RUBY_GC_MALLOC_LIMIT
+          value: '40000000'
+        - name: RUBY_HEAP_MIN_SLOTS
+          value: '800000'
+        - name: LANG
+          value: en_US.UTF-8
+        ports:
+        - name: http
+          containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /srv/status
+            port: http
+            httpHeaders:
+              - name: Host
+                value: forum.kazamatsuri.org
+        readinessProbe:
+          httpGet:
+            path: /srv/status
+            port: http
+            httpHeaders:
+              - name: Host
+                value: forum.kazamatsuri.org
+        volumeMounts:
+        - name: discourse-uploads
+          mountPath: /shared/uploads
+        - name: discourse-backups
+          mountPath: /shared/backups
+      volumes:
+      - name: discourse-uploads
+        nfs:
+          server: fs-952b8fdc.efs.us-east-1.amazonaws.com
+          path: /
+      - name: discourse-backups
+        nfs:
+          server: fs-7437933d.efs.us-east-1.amazonaws.com
+          path: /

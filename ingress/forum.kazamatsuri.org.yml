@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: forum.kazamatsuri.org
+spec:
+  rules:
+  - host: forum.kazamatsuri.org
+    http:
+      paths:
+      - backend:
+          serviceName: discourse
+          servicePort: 80

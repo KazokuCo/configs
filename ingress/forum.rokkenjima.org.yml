@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: forum.rokkenjima.org
+spec:
+  rules:
+  - host: forum.rokkenjima.org
+    http:
+      paths:
+      - backend:
+          serviceName: discourse
+          servicePort: 80
