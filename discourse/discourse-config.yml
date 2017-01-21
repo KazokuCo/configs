@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: discourse
 data:
-  version: v1.8.0.beta1
-  suffix: ""
+  version: v1.8.0.beta2
+  suffix: "-1"
 
   web.yml: |-
     templates:
@@ -28,7 +28,7 @@ data:
       UNICORN_WORKERS: 4
       SIDEKIQ_WORKERS: 2
 
-      DISCOURSE_HOSTNAME: forum.test.kazamatsuri.org
+      DISCOURSE_HOSTNAME: forum.kazamatsuri.org
 
       DISCOURSE_DEVELOPER_EMAILS:
 
@@ -89,6 +89,7 @@ data:
                 timeout: 5000
                 db_id: 1
                 host_names:
+                  - forum.rokkenjima.org
                   - forum.test.rokkenjima.org
         - exec: cd /var/www/discourse && sudo -E -u discourse bundle install --deployment --verbose --without test --without development
         - exec: cd /var/www/discourse && sudo -E -u discourse bundle exec rake multisite:migrate
