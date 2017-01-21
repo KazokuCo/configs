@@ -34,9 +34,9 @@ spec:
           exec /sbin/boot
         env:
         - name: UNICORN_WORKERS
-          value: "4"
+          value: "2"
         - name: UNICORN_SIDEKIQS
-          value: "5"
+          value: "1"
         - name: DISCOURSE_HOSTNAME
           value: forum.kazamatsuri.org
         - name: DISCOURSE_DEVELOPER_EMAILS
@@ -90,24 +90,17 @@ spec:
               key: password
         - name: RAILS_ENV
           value: production
-        - name: RUBY_GLOBAL_METHOD_CACHE_SIZE
-          value: '131072'
-        - name: RUBY_GC_MALLOC_LIMIT
-          value: '40000000'
-        - name: RUBY_HEAP_MIN_SLOTS
-          value: '800000'
+        - name: RUBY_GC_HEAP_GROWTH_MAX_SLOTS
+          value: '40000'
+        - name: RUBY_GC_HEAP_INIT_SLOTS
+          value: '400000'
+        - name: RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR
+          value: '1.5'
         - name: LANG
           value: en_US.UTF-8
         ports:
         - name: http
           containerPort: 80
-        livenessProbe:
-          httpGet:
-            path: /srv/status
-            port: http
-            httpHeaders:
-              - name: Host
-                value: forum.kazamatsuri.org
         readinessProbe:
           httpGet:
             path: /srv/status
