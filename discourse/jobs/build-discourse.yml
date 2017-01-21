@@ -102,6 +102,9 @@ spec:
             secretKeyRef:
               name: smtp
               key: password
+        resources:
+          limits:
+            cpu: 0.5
         volumeMounts:
         - name: discourse-config
           mountPath: /srv/discourse_config
