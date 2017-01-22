@@ -4,8 +4,8 @@ metadata:
   name: nginx-ingress-lb
 data:
   body-size: 10m
-  proxy-read-timeout: '86400'
-  proxy-send-timeout: '86400'
+  proxy-read-timeout: '31536000'
+  proxy-send-timeout: '31536000'
 ---
 apiVersion: v1
 kind: Service
