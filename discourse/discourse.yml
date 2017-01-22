@@ -30,7 +30,14 @@ spec:
         - |-
           #!/bin/bash
           set -e
+          
+          # Discourse doesn't run as root, but that's what external mounts are mounted as.
+          # Technically only needed for the first upload or backup for each forum.
           chown discourse:www-data /shared/{uploads,backups}
+          
+          # It keeps looking up Redis by DNS and 500's if it can't; cache the IP for them.
+          export DISCOURSE_REDIS_HOST=${REDIS_SERVICE_HOST}
+          
           exec /sbin/boot
         env:
         - name: UNICORN_WORKERS
@@ -66,8 +73,8 @@ spec:
           value: "50"
         - name: DISCOURSE_DB_TIMEOUT
           value: "5000"
-        - name: DISCOURSE_REDIS_HOST
-          value: redis.default.svc.cluster.local
+        # - name: DISCOURSE_REDIS_HOST
+        #   value: redis.default.svc.cluster.local
         - name: DISCOURSE_SMTP_ADDRESS
           valueFrom:
             secretKeyRef:
