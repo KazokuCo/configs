@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grappler
+data:
+  config.yml: |-
+    hooks:
+    # Topics: Public
+    - key: 292b09f10b7735963f8313cafa805a71
+      type: discourse
+      filter:
+      - topic_created
+      invoke:
+      - id: 272706660244520960
+        token: l7oJgCsL8nzmyesVRiseILfaiS_esywpFVV0S-l3h81YryyqH-Pj2TvDcKO_TY_WzAXN
+    # Topics: Clubroom
+    - key: 7698a71244d897aa1ff01cd62f2e1747
+      type: discourse
+      filter:
+      - topic_created
+      invoke:
+      - id: 272710006598533120
+        token: M5iJkFaDypH49YPYo1VNfCMDSLWXkeFPvRuWEoC0Fh5kF2ZEBeE3jOTXuYFZCd4xO1-U
+    # Topics: Staff
+    - key: 97b11a595a7ebfd0fb72c29ff39e1958
+      type: discourse
+      filter:
+      - topic_created
+      invoke:
+      - id: 272710151625244672
+        token: LmH-w6zB2jjBj2MPvvx0ap44PGA3bt2Hp7ea6DQ4xVdeRduqvZIGf1B9KdtPZPjLvtKE
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grappler
+spec:
+  selector:
+    app: grappler
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: grappler
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  template:
+    metadata:
+      labels:
+        app: grappler
+    spec:
+      containers:
+      - name: discourse
+        image: kazokuco/grappler
+        imagePullPolicy: Always
+        command: ["grappler", "/config/config.yml"]
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+        ports:
+        - name: http
+          containerPort: 8000
+        volumeMounts:
+        - name: config
+          mountPath: /config
+      volumes:
+      - name: config
+        configMap:
+          name: grappler

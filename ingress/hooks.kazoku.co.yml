@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hooks.kazoku.co
+spec:
+  rules:
+  - host: hooks.kazoku.co
+    http:
+      paths:
+      - backend:
+          serviceName: grappler
+          servicePort: 80
