@@ -59,7 +59,7 @@ spec:
         app: grappler
     spec:
       containers:
-      - name: discourse
+      - name: grappler
         image: kazokuco/grappler
         imagePullPolicy: Always
         command: ["grappler", "/config/config.yml"]
