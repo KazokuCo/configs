@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: rokkenjima.org
+spec:
+  rules:
+  - host: rokkenjima.org
+    http:
+      paths:
+      - backend:
+          serviceName: ghost-rokkenjima
+          servicePort: 80

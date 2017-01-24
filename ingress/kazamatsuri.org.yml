@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kazamatsuri.org
+spec:
+  rules:
+  - host: kazamatsuri.org
+    http:
+      paths:
+      - backend:
+          serviceName: ghost-kazamatsuri
+          servicePort: 80

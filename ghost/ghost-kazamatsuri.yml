@@ -1,0 +1,240 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ghost-kazamatsuri
+data:
+  url: https://kazamatsuri.org
+  
+  nginx.conf: |-
+    worker_processes auto;
+    daemon off;
+    error_log stderr info;
+    events {
+      worker_connections 1024;
+      multi_accept on;
+    }
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      
+      sendfile           on;
+      tcp_nopush         on;
+      keepalive_timeout  65;
+      
+      server {
+        listen       80 default_server;
+        server_name  localhost;
+        root         /srv/www;
+        client_max_body_size 10M;
+        
+        # Rewrite old WordPress URLs to their Ghost equivalents
+        rewrite "^/[0-9]{4}/[0-9]{2}/[0-9]{2}/(.*)$" "/$1" permanent;
+        
+        # Try to resolve real files in the www directory first, fall back to Ghost
+        location / {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Credentials' 'true';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            
+            try_files $uri $uri/ @ghost;
+            error_page 403 = @ghost;
+        }
+        
+        # Bypass Ghost when serving theme assets
+        #location /assets {
+        #    alias /srv/ghost/content/themes/monologue/assets;
+        #    expires 365d;
+        #}
+        
+        # Bypass Ghost when serving internal assets
+        location /content {
+            alias /srv/kazamatsuri/ghost/content;
+            expires 365d;
+        }
+        
+        # Bypass Ghost when servince admin assets
+        location /public {
+            alias /srv/kazamatsuri/ghost/core/built/public;
+            expires 365d;
+        }
+        
+        # Internal location for Ghost
+        location @ghost {
+            proxy_pass http://localhost:2368;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_buffers 16 1024k;
+            proxy_redirect off;
+        }
+        
+        
+        
+        # The real Podcast XML file is on Github Pages for easier publishing
+        location = /podcast.xml { return 302 http://podcast.kazamatsuri.org/feed.xml; }
+        # Podcast MP3s are now on S3
+        location ~ ^/podcast/?(.*)$ { return 302 https://kazamatsuri.s3.amazonaws.com/podcast/$1; }
+        
+        # This invite link is really hard to say...
+        location = /discord { return 301 https://discord.gg/0X5MFPX6tzYABuKo; }
+        
+        # Social media redirects (for Youtube annotations)
+        location = /twitter { return 301 https://twitter.com/KazamatsuriOrg; }
+        location = /facebook { return 301 https://facebook.com/kazamatsuriorg; }
+        location = /patreon { return 301 https://www.patreon.com/user?u=2645941; }
+        
+        # Redirects to the forum (thanks Youtube)
+        location ~ ^/go/t/(.*)$ { return 302 https://forum.kazamatsuri.org/t/$1; }
+        
+        
+        
+        # An email sent out to CLANNAD backers had a typo in this link
+        location = /announcing-the-clannad-bookclub-win-a-copy-of-clannad-on-steam/ {
+            return 301 /introducing-the-clannad-bookclub-win-a-copy-of-clannad-on-steam/;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ghost-kazamatsuri
+spec:
+  selector:
+    app: ghost-kazamatsuri
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ghost-kazamatsuri
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: ghost-kazamatsuri
+    spec:
+      containers:
+      - name: ghost
+        image: kazokuco/ghost:0.11.0-1
+        env:
+          - name: NODE_ENV
+            value: production
+          - name: GHOST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: ghost-kazamatsuri
+                key: url
+          - name: GHOST_SMTP_HOST
+            valueFrom:
+              secretKeyRef:
+                name: smtp
+                key: host
+          - name: GHOST_SMTP_PORT
+            valueFrom:
+              secretKeyRef:
+                name: smtp
+                key: port
+          - name: GHOST_SMTP_USER
+            valueFrom:
+              secretKeyRef:
+                name: smtp
+                key: username
+          - name: GHOST_SMTP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: smtp
+                key: password
+          - name: GHOST_DB_HOST
+            value: postgresql.default.svc.cluster.local
+          - name: GHOST_DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: db.username
+          - name: GHOST_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: db.password
+          - name: GHOST_DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: db.name
+          - name: GHOST_S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: s3.keyid
+          - name: GHOST_S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: s3.key
+          - name: GHOST_S3_BUCKET
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: s3.bucket
+          - name: GHOST_S3_REGION
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: s3.region
+          - name: GHOST_S3_ASSET_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ghost-kazamatsuri
+                key: s3.assethost
+        #readinessProbe:
+        #  httpGet:
+        #    path: /ghost
+        #    port: 2368
+        #  timeoutSeconds: 2
+        ports:
+          - name: ghost
+            containerPort: 2368
+            protocol: TCP
+        volumeMounts:
+        - name: theme
+          mountPath: /usr/src/ghost/content/themes/theme
+      - name: theme
+        image: kazokuco/ghost_kazamatsuri
+        imagePullPolicy: Always
+        command: ["bash", "-c", "cp -r /data/* /export && tail -f /dev/null"]
+        volumeMounts:
+        - name: theme
+          mountPath: /export
+      - name: nginx
+        image: nginx:1
+        imagePullPolicy: Always
+        command: ["nginx", "-c", "/etc/config/nginx.conf"]
+        ports:
+          - name: http
+            containerPort: 80
+            protocol: TCP
+        volumeMounts:
+          - name: config
+            mountPath: /etc/config
+          - name: www
+            mountPath: /srv/www
+      volumes:
+      - name: theme
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: ghost-kazamatsuri
+      - name: www
+        nfs:
+          server: fs-4a832403.efs.us-east-1.amazonaws.com
+          path: /
