@@ -110,7 +110,7 @@ spec:
     spec:
       containers:
       - name: ghost
-        image: kazokuco/ghost:0.11.0-1
+        image: kazokuco/ghost:0.11.0-2
         env:
           - name: NODE_ENV
             value: production
