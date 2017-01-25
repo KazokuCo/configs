@@ -3,9 +3,13 @@ kind: ConfigMap
 metadata:
   name: nginx-ingress-lb
 data:
-  body-size: 10m
+  body-size: 64m
+  proxy-connect-timeout: '15'
   proxy-read-timeout: '31536000'
   proxy-send-timeout: '31536000'
+  hsts-include-subdomains: 'false'
+  server-name-hash-bucket-size: '256'
+  ssl-redirect: 'false'
 ---
 apiVersion: v1
 kind: Service

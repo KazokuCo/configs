@@ -2,7 +2,15 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: kazamatsuri.org
+  annotations:
+    kubernetes.io/tls-acme: "true"
 spec:
+  tls:
+  - secretName: kazamatsuri.org-tls
+    hosts:
+    - kazamatsuri.org
+    - forum.kazamatsuri.org
+    - new.kazamatsuri.org
   rules:
   - host: kazamatsuri.org
     http:

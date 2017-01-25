@@ -2,7 +2,14 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: rokkenjima.org
+  annotations:
+    kubernetes.io/tls-acme: "true"
 spec:
+  tls:
+  - secretName: rokkenjima.org-tls
+    hosts:
+    - rokkenjima.org
+    - forum.rokkenjima.org
   rules:
   - host: rokkenjima.org
     http:

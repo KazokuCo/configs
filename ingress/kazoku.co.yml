@@ -2,7 +2,15 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: kazoku.co
+  annotations:
+    kubernetes.io/tls-acme: "true"
 spec:
+  tls:
+  - secretName: kazoku.co-tls
+    hosts:
+    - kazoku.co
+    - grafana.kazoku.co
+    - hooks.kazoku.co
   rules:
   - host: grafana.kazoku.co
     http:
