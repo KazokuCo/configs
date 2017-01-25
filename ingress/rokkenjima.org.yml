@@ -10,3 +10,9 @@ spec:
       - backend:
           serviceName: ghost-rokkenjima
           servicePort: 80
+  - host: forum.rokkenjima.org
+    http:
+      paths:
+      - backend:
+          serviceName: discourse
+          servicePort: 80

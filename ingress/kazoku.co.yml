@@ -1,9 +1,15 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: hooks.kazoku.co
+  name: kazoku.co
 spec:
   rules:
+  - host: grafana.kazoku.co
+    http:
+      paths:
+      - backend:
+          serviceName: grafana
+          servicePort: 80
   - host: hooks.kazoku.co
     http:
       paths:
