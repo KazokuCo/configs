@@ -12,6 +12,12 @@ spec:
     - grafana.kazoku.co
     - hooks.kazoku.co
   rules:
+  - host: kazoku.co
+    http:
+      paths:
+      - backend:
+          serviceName: default-http-backend
+          servicePort: 80
   - host: grafana.kazoku.co
     http:
       paths:
