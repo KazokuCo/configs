@@ -5,7 +5,7 @@ metadata:
 data:
   config.yml: |-
     hooks:
-    # Topics: Public
+    # Kazamatsuri: Public
     - key: 292b09f10b7735963f8313cafa805a71
       type: discourse
       filter:
@@ -13,7 +13,8 @@ data:
       invoke:
       - id: 272706660244520960
         token: l7oJgCsL8nzmyesVRiseILfaiS_esywpFVV0S-l3h81YryyqH-Pj2TvDcKO_TY_WzAXN
-    # Topics: Clubroom
+
+    # Kazamatsuri: Clubroom
     - key: 7698a71244d897aa1ff01cd62f2e1747
       type: discourse
       filter:
@@ -21,7 +22,8 @@ data:
       invoke:
       - id: 272710006598533120
         token: M5iJkFaDypH49YPYo1VNfCMDSLWXkeFPvRuWEoC0Fh5kF2ZEBeE3jOTXuYFZCd4xO1-U
-    # Topics: Staff
+
+    # Kazamatsuri: Staff
     - key: 97b11a595a7ebfd0fb72c29ff39e1958
       type: discourse
       filter:
@@ -29,6 +31,33 @@ data:
       invoke:
       - id: 272710151625244672
         token: LmH-w6zB2jjBj2MPvvx0ap44PGA3bt2Hp7ea6DQ4xVdeRduqvZIGf1B9KdtPZPjLvtKE
+
+    # Rokkenjima: Public
+    - key: daca67281a0826a0255947eb72a81696
+      type: discourse
+      filter:
+      - topic_created
+      invoke:
+      - id: 274877500893429763
+        token: f_3paCi6fw_aDvWnAR_-EFnJMc5Xo9bIC7hDUNM8znsyWZ4IcZp8FoIUA7L1h2iiytaX
+
+    # Rokkenjima: The Golden Land
+    - key: 8a0c85b28e6c2ece1290bdc2557bb6cc
+      type: discourse
+      filter:
+      - topic_created
+      invoke:
+      - id: 274882912355221505
+        token: UpDmKpw0seHLKOqJbs7vDVYTOJAS32_LTGt1GazMPnWK7MfBzpvle3FeZ-Jmt8b3QFDY
+
+    # Rokkenjima: Staff
+    - key: ee082454b9111b40d50d48f151883ab1
+      type: discourse
+      filter:
+      - topic_created
+      invoke:
+      - id: 274882982744031232
+        token: h7wdtk2i7vLz0RcPfCTIEP3QqWxGDCuM8B2RTFXxcJmzkTIPOal6B9WcrSBFuGK9qfAw
 ---
 apiVersion: v1
 kind: Service
@@ -63,6 +92,9 @@ spec:
         image: kazokuco/grappler
         imagePullPolicy: Always
         command: ["grappler", "/config/config.yml"]
+        env:
+        - name: bump
+          value: v1
         livenessProbe:
           httpGet:
             path: /health
