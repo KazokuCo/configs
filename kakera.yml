@@ -149,6 +149,22 @@ spec:
               key: db.password
         - name: REDIS_URL
           value: redis://redis.default.svc.cluster.local:6379/0
+        - name: DEFAULT_FILE_STORAGE
+          value: storages.backends.s3boto3.S3Boto3Storage
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: kakera
+              key: aws.keyid
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: kakera
+              key: aws.key
+        - name: AWS_STORAGE_BUCKET_NAME
+          value: kakera
+        - name: AWS_S3_CUSTOM_DOMAIN
+          value: d31u62iyrzhln9.cloudfront.net
         - name: GUNICORN_WORKERS
           value: "8"
         - name: GUNICORN_THREADS
