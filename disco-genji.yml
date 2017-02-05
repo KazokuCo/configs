@@ -1,0 +1,57 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: disco-genji
+data:
+  bot.yml: |-
+    name: Genji
+    services:
+      - load: discord
+        game: Chess
+        jobs:
+          - load: verification
+            channel: access-requests
+            grant: Verified
+            against: discourse
+            discourse:
+              url: https://forum.rokkenjima.org
+              topic_id: 73
+            lines:
+              success: "Your identity has been verified."
+              name_not_in_post: "You must mention your name as it appears here in your post."
+              error: "An error is preventing me from verifying you. Please try again."
+      # - load: discourse
+      #   url: https://forum.rokkenjima.org
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: disco-genji
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: disco-genji
+  template:
+    metadata:
+      name: disco-genji
+      labels:
+        app: disco-genji
+    spec:
+      containers:
+      - name: disco
+        image: kazokuco/disco:v1
+        args: [run, /etc/disco/bot.yml]
+        env:
+          - name: DISCORD_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: disco-genji
+                key: discord.token
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/disco
+      volumes:
+      - name: config-volume
+        configMap:
+          name: disco-genji
