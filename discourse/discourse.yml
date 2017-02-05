@@ -115,6 +115,15 @@ spec:
             httpHeaders:
               - name: Host
                 value: forum.kazamatsuri.org
+        livenessProbe:
+          httpGet:
+            path: /srv/status
+            port: http
+            httpHeaders:
+              - name: Host
+                value: forum.kazamatsuri.org
+          initialDelaySeconds: 60
+          periodSeconds: 10
         volumeMounts:
         - name: discourse-uploads
           mountPath: /shared/uploads
