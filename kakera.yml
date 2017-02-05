@@ -97,6 +97,19 @@ spec:
   selector:
     app: kakera
 ---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: kakera-media
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "slow"
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1000Gi
+---
 kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
@@ -165,6 +178,16 @@ spec:
           value: kakera
         - name: AWS_S3_CUSTOM_DOMAIN
           value: d31u62iyrzhln9.cloudfront.net
+        - name: CLOUDFLARE_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare
+              key: email
+        - name: CLOUDFLARE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare
+              key: token
         - name: GUNICORN_WORKERS
           value: "8"
         - name: GUNICORN_THREADS
@@ -214,6 +237,5 @@ spec:
       - name: static
         emptyDir: {}
       - name: media
-        nfs:
-          server: fs-2478df6d.efs.us-east-1.amazonaws.com
-          path: /
+        persistentVolumeClaim:
+          claimName: kakera-media
