@@ -75,6 +75,14 @@ data:
               - git clone https://github.com/discourse/discourse-spoiler-alert.git
               - git clone https://github.com/discourse/discourse-bbcode-color.git
               - git clone https://github.com/discourse/discourse-staff-notes.git
+              - git clone https://github.com/discourse/discourse-presence.git
+              - git clone https://github.com/vinkas0/discourse-navigation.git
+              - git clone https://github.com/vinkas0/discourse-branding.git
+              - git clone https://github.com/tcreativo/plugin_discourse_calendar.git
+              - git clone https://github.com/pmusaraj/discourse-sidebar-blocks.git
+              - git clone https://github.com/davidtaylorhq/discourse-whos-online.git
+              - git clone https://github.com/gdpelican/retort.git
+              # - git clone https://github.com/scossar/discourse-twitter-stream.git
       before_bundle_exec:
         - file:
             path: $home/config/multisite.yml
