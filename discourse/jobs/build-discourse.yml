@@ -46,7 +46,7 @@ spec:
           cat /srv/discourse_docker/containers/web.yml
           
           DNS_SERVER=$(dig +short kube-dns.kube-system.svc.cluster.local)
-          cd /srv/discourse_docker && ./launcher bootstrap web --docker-args "--dns $DNS_SERVER"
+          cd /srv/discourse_docker && ./launcher bootstrap web --docker-args "--dns $DNS_SERVER --cpu-period=100000 --cpu-quota=50000"
           
           HOST=000226360694.dkr.ecr.us-east-1.amazonaws.com
           docker tag local_discourse/web $HOST/discourse
@@ -104,9 +104,6 @@ spec:
             secretKeyRef:
               name: smtp
               key: password
-        resources:
-          limits:
-            cpu: 0.5
         volumeMounts:
         - name: discourse-config
           mountPath: /srv/discourse_config
