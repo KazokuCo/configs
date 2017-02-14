@@ -1,3 +1,123 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: build-discourse
+data:
+  version: v1.8.0.beta5
+  suffix: "-2"
+
+  web.yml: |-
+    templates:
+      - "templates/web.template.yml"
+      - "templates/web.ratelimited.template.yml"
+      - "templates/cloudflare.template.yml"
+
+    expose:
+      - "10080:80"
+
+    # any extra arguments for Docker?
+    # docker_args:
+
+    params:
+      ## Which Git revision should this container use? (default: tests-passed)
+      version: ${DISCOURSE_VERSION}
+
+    env:
+      LANG: en_US.UTF-8
+
+      UNICORN_WORKERS: 4
+      SIDEKIQ_WORKERS: 2
+
+      DISCOURSE_HOSTNAME: forum.kazamatsuri.org
+
+      DISCOURSE_DEVELOPER_EMAILS:
+
+      DISCOURSE_DB_NAME: ${DISCOURSE_KAZAMATSURI_DB_NAME}
+      DISCOURSE_DB_USERNAME: ${DISCOURSE_KAZAMATSURI_DB_USERNAME}
+      DISCOURSE_DB_PASSWORD: ${DISCOURSE_KAZAMATSURI_DB_PASSWORD}
+      DISCOURSE_DB_HOST: postgresql.default.svc.cluster.local
+      DISCOURSE_DB_SOCKET: ''
+      DISCOURSE_DB_POOL: 50
+      DISCOURSE_DB_TIMEOUT: 5000
+
+      DISCOURSE_REDIS_HOST: redis.default.svc.cluster.local
+
+      DISCOURSE_SMTP_ADDRESS: smtp.default.svc.cluster.local
+      DISCOURSE_SMTP_PORT: 587
+      DISCOURSE_SMTP_USER_NAME: ${DISCOURSE_SMTP_USERNAME}
+      DISCOURSE_SMTP_PASSWORD: ${DISCOURSE_SMTP_PASSWORD}
+
+      #DISCOURSE_CDN_URL: //discourse-cdn.example.com
+
+    volumes:
+      - volume:
+          host: /srv/discourse/web
+          guest: /shared
+      - volume:
+          host: /srv/discourse/web/log/var-log
+          guest: /var/log
+
+      # Bootstrapping on a machine that has uploads mounted over NFS will fail, as
+      # the bootstrap script will attempt to `chown -R` it all... well, it doesn't
+      # need a real uploads directory for this anyways.
+      - volume:
+          host: /tmp/bootstrap_discourse_uploads
+          guest: /shared/uploads
+
+    ## The docker manager plugin allows you to one-click upgrade Discouse
+    ## http://discourse.example.com/admin/docker
+    hooks:
+      after_code:
+        - exec:
+            cd: $home/plugins
+            cmd:
+              # - git clone https://github.com/discourse/docker_manager.git
+              - git clone https://github.com/discourse/discourse-spoiler-alert.git
+              - git clone https://github.com/discourse/discourse-bbcode-color.git
+              - git clone https://github.com/discourse/discourse-staff-notes.git
+              # - git clone https://github.com/discourse/discourse-presence.git
+              - git clone https://github.com/vinkas0/discourse-navigation.git
+              - git clone https://github.com/vinkas0/discourse-branding.git
+              - git clone https://github.com/tcreativo/plugin_discourse_calendar.git
+              - git clone https://github.com/pmusaraj/discourse-sidebar-blocks.git
+              # - git clone https://github.com/davidtaylorhq/discourse-whos-online.git
+              - git clone https://github.com/gdpelican/retort.git
+              # - git clone https://github.com/scossar/discourse-twitter-stream.git
+      before_bundle_exec:
+        - file:
+            path: $home/config/multisite.yml
+            contents: |
+              rokkenjima:
+                adapter: postgresql
+                database: ${DISCOURSE_ROKKENJIMA_DB_NAME}
+                username: ${DISCOURSE_ROKKENJIMA_DB_USERNAME}
+                password: ${DISCOURSE_ROKKENJIMA_DB_PASSWORD}
+                host: postgresql.default.svc.cluster.local
+                pool: 50
+                timeout: 5000
+                db_id: 1
+                host_names:
+                  - forum.rokkenjima.org
+                  - forum.test.rokkenjima.org
+        - exec: cd /var/www/discourse && sudo -E -u discourse bundle install --deployment --verbose --without test --without development
+        - exec: cd /var/www/discourse && sudo -E -u discourse bundle exec rake multisite:migrate
+
+    ## Remember, this is YAML syntax - you can only have one block with a name
+    run:
+      - exec: echo "Beginning of custom commands"
+
+      ## If you want to configure password login for root, uncomment and change:
+      ## Use only one of the following lines:
+      #- exec: /usr/sbin/usermod -p 'PASSWORD_HASH' root
+      #- exec: /usr/sbin/usermod -p "$(mkpasswd -m sha-256 'RAW_PASSWORD')" root
+
+      ## If you want to authorized additional users, uncomment and change:
+      #- exec: ssh-import-id username
+      #- exec: ssh-import-id anotherusername
+
+      - exec: echo "End of custom commands"
+      - exec: awk -F\# '{print $1;}' ~/.ssh/authorized_keys | awk 'BEGIN { print "Authorized SSH keys for this container:"; } NF>=2 {print $NF;}'
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -57,12 +177,12 @@ spec:
         - name: DISCOURSE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: discourse
+              name: build-discourse
               key: version
         - name: DISCOURSE_IMAGE_SUFFIX
           valueFrom:
             configMapKeyRef:
-              name: discourse
+              name: build-discourse
               key: suffix
         - name: DISCOURSE_KAZAMATSURI_DB_NAME
           valueFrom:
@@ -116,7 +236,7 @@ spec:
       volumes:
       - name: discourse-config
         configMap:
-          name: discourse
+          name: build-discourse
       - name: docker-bin
         hostPath:
           path: /usr/bin/docker
