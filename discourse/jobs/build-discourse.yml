@@ -28,15 +28,17 @@ spec:
           echo "deb https://apt.dockerproject.org/repo/ debian-jessie main" >> /etc/apt/sources.list
           apt-get update
           apt-get install -y docker-engine
+
+          # Install the AWS CLI, use it to authenticate with ECR (tokens expire after 12h).
+          apt-get install -y python-pip python-dev libyaml-dev
+          pip install awscli
+          eval $(aws ecr get-login --region=us-east-1)
           
           # Because Docker is a bitch about protocol versions, and protocol versions have an
           # undefined relationship with client versions, just say fuck it and symlink the host's
           # docker binary over ours. This isn't the right way to do it, but the worst that can
           # happen is that our builds break until fixed.
           ln -sf /usr/local/bin/docker /usr/bin/docker
-          
-          # Symlink dockercfg so we can push to ECR from a container.
-          ln -s /dockercfg/.dockercfg /root/.dockercfg
           
           # Build Discourse using the official bootstrapper.
           git clone https://github.com/discourse/discourse_docker /srv/discourse_docker
@@ -109,9 +111,6 @@ spec:
         - name: discourse-config
           mountPath: /srv/discourse_config
           readOnly: true
-        - name: dockercfg
-          mountPath: /dockercfg
-          readOnly: true
         - name: docker-bin
           mountPath: /usr/local/bin/docker
           readOnly: true
@@ -121,9 +120,6 @@ spec:
       - name: discourse-config
         configMap:
           name: discourse
-      - name: dockercfg
-        secret:
-          secretName: ecr
       - name: docker-bin
         hostPath:
           path: /usr/bin/docker
