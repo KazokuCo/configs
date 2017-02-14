@@ -110,14 +110,14 @@ spec:
           containerPort: 80
         readinessProbe:
           httpGet:
-            path: /srv/status
+            path: /
             port: http
             httpHeaders:
               - name: Host
                 value: forum.kazamatsuri.org
         livenessProbe:
           httpGet:
-            path: /srv/status
+            path: /
             port: http
             httpHeaders:
               - name: Host
