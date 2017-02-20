@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: build-discourse
 data:
-  version: v1.8.0.beta5
-  suffix: "-2"
+  version: v1.8.0.beta6
+  suffix: ""
 
   web.yml: |-
     templates:
@@ -35,12 +35,12 @@ data:
       DISCOURSE_DB_NAME: ${DISCOURSE_KAZAMATSURI_DB_NAME}
       DISCOURSE_DB_USERNAME: ${DISCOURSE_KAZAMATSURI_DB_USERNAME}
       DISCOURSE_DB_PASSWORD: ${DISCOURSE_KAZAMATSURI_DB_PASSWORD}
-      DISCOURSE_DB_HOST: postgresql.default.svc.cluster.local
+      DISCOURSE_DB_HOST: ${DISCOURSE_DB_HOST}
       DISCOURSE_DB_SOCKET: ''
       DISCOURSE_DB_POOL: 50
       DISCOURSE_DB_TIMEOUT: 5000
 
-      DISCOURSE_REDIS_HOST: redis.default.svc.cluster.local
+      DISCOURSE_REDIS_HOST: ${DISCOURSE_REDIS_HOST}
 
       DISCOURSE_SMTP_ADDRESS: smtp.default.svc.cluster.local
       DISCOURSE_SMTP_PORT: 587
@@ -92,7 +92,7 @@ data:
                 database: ${DISCOURSE_ROKKENJIMA_DB_NAME}
                 username: ${DISCOURSE_ROKKENJIMA_DB_USERNAME}
                 password: ${DISCOURSE_ROKKENJIMA_DB_PASSWORD}
-                host: postgresql.default.svc.cluster.local
+                host: ${DISCOURSE_DB_HOST}
                 pool: 50
                 timeout: 5000
                 db_id: 1
@@ -138,11 +138,15 @@ spec:
         - |-
           #!/bin/bash
           set -e
-          
+
           # Install dependencies.
           apt-get update
           apt-get install -y apt-transport-https dnsutils
-          
+
+          # Workaround: resolve DB/redis hosts to IPs.
+          export DISCOURSE_DB_HOST=$(dig +short postgresql.default.svc.cluster.local|head -n1)
+          export DISCOURSE_REDIS_HOST=$(dig +short redis.default.svc.cluster.local|head -n1)
+
           # Install Docker.
           curl -s http://yum.dockerproject.org/gpg | apt-key add -
           echo "deb https://apt.dockerproject.org/repo/ debian-jessie main" >> /etc/apt/sources.list
@@ -153,21 +157,24 @@ spec:
           apt-get install -y python-pip python-dev libyaml-dev
           pip install awscli
           eval $(aws ecr get-login --region=us-east-1)
-          
+
           # Because Docker is a bitch about protocol versions, and protocol versions have an
           # undefined relationship with client versions, just say fuck it and symlink the host's
           # docker binary over ours. This isn't the right way to do it, but the worst that can
           # happen is that our builds break until fixed.
           ln -sf /usr/local/bin/docker /usr/bin/docker
-          
+
           # Build Discourse using the official bootstrapper.
           git clone https://github.com/discourse/discourse_docker /srv/discourse_docker
           perl -pe 's/\${([_A-Z]+)}/ $ENV{$1} /e' < /srv/discourse_config/web.yml > /srv/discourse_docker/containers/web.yml
           cat /srv/discourse_docker/containers/web.yml
-          
-          DNS_SERVER=$(dig +short kube-dns.kube-system.svc.cluster.local)
-          cd /srv/discourse_docker && ./launcher bootstrap web --docker-args "--dns $DNS_SERVER --cpu-period=100000 --cpu-quota=50000"
-          
+          echo ""
+
+          DNS_SERVER=$(dig +short kube-dns.kube-system.svc.cluster.local|head -n1)
+          docker_args="--net=host --cpu-period=100000 --cpu-quota=50000"
+          echo "docker_args=${docker_args}"
+          cd /srv/discourse_docker && ./launcher bootstrap web --docker-args "$docker_args"
+
           HOST=000226360694.dkr.ecr.us-east-1.amazonaws.com
           docker tag local_discourse/web $HOST/discourse
           docker tag local_discourse/web $HOST/discourse:${DISCOURSE_VERSION}${DISCOURSE_IMAGE_SUFFIX}
