@@ -72,4 +72,6 @@ spec:
         args:
         - /nginx-ingress-controller
         - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
-        - --nginx-configmap=$(POD_NAMESPACE)/nginx-ingress-lb
+        - --configmap=$(POD_NAMESPACE)/nginx-ingress-lb
+        - --publish-service=$(POD_NAMESPACE)/nginx-ingress-lb
+        - --sync-period=2s
