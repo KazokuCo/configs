@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: echo.kazoku.co
+  annotations:
+    kubernetes.io/tls-acme: "true"
+spec:
+  tls:
+  - secretName: echo.kazoku.co-tls
+    hosts:
+    - echo.kazoku.co
+  rules:
+  - host: echo.kazoku.co
+    http:
+      paths:
+      - backend:
+          serviceName: echoheaders
+          servicePort: 80
