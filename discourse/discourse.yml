@@ -115,6 +115,7 @@ spec:
             httpHeaders:
               - name: Host
                 value: forum.kazamatsuri.org
+          successThreshold: 6
         livenessProbe:
           httpGet:
             path: /

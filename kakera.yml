@@ -22,6 +22,13 @@ data:
       tcp_nopush         on;
       keepalive_timeout  65;
 
+      upstream kakera {
+        # Call the local instance, with no failure timeouts.
+        server 127.0.0.1:8000 fail_timeout=0;
+        # Fall back to calling another instance if the local one is dead.
+        server kakera.default.svc.cluster.local backup;
+      }
+
       server {
         listen       80 default_server;
         server_name  localhost;
@@ -47,11 +54,10 @@ data:
 
         # Internal location for kakera
         location @kakera {
-          proxy_pass http://localhost:8000;
+          proxy_pass http://kakera;
           proxy_set_header Host $host;
           proxy_set_header X-Real-IP $remote_addr;
           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_buffers 16 1024k;
           proxy_redirect off;
         }
 
@@ -199,6 +205,7 @@ spec:
             httpHeaders:
             - name: Accept
               value: application/json
+          successThreshold: 6
         ports:
         - name: gunicorn
           containerPort: 8000
