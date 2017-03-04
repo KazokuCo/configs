@@ -16,7 +16,7 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: ghost-kazamatsuri
+          serviceName: kakera
           servicePort: 80
   - host: forum.kazamatsuri.org
     http:
@@ -28,5 +28,5 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: kakera
+          serviceName: ghost-kazamatsuri
           servicePort: 80

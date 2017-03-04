@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: ghost-kazamatsuri
 data:
-  url: https://kazamatsuri.org
+  url: https://new.kazamatsuri.org
   
   nginx.conf: |-
     worker_processes auto;
