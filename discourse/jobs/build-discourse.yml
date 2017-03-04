@@ -29,6 +29,8 @@ data:
       SIDEKIQ_WORKERS: 2
 
       DISCOURSE_HOSTNAME: forum.kazamatsuri.org
+      DISCOURSE_BACKUP_HOSTNAME: d36efohndrhp2o.cloudfront.net
+      DISCOURSE_CDN_URL: https://d36efohndrhp2o.cloudfront.net
 
       DISCOURSE_DEVELOPER_EMAILS:
 
@@ -46,8 +48,6 @@ data:
       DISCOURSE_SMTP_PORT: 587
       DISCOURSE_SMTP_USER_NAME: ${DISCOURSE_SMTP_USERNAME}
       DISCOURSE_SMTP_PASSWORD: ${DISCOURSE_SMTP_PASSWORD}
-
-      #DISCOURSE_CDN_URL: //discourse-cdn.example.com
 
     volumes:
       - volume:

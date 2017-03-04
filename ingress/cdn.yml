@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cdn
+spec:
+  rules:
+  - host: d36efohndrhp2o.cloudfront.net
+    http:
+      paths:
+      - backend:
+          serviceName: discourse
+          servicePort: 80
