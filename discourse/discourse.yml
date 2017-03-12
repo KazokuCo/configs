@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: discourse
-        image: 000226360694.dkr.ecr.us-east-1.amazonaws.com/discourse:v1.8.0.beta6-2
+        image: 000226360694.dkr.ecr.us-east-1.amazonaws.com/discourse:v1.8.0.beta6-3
         imagePullPolicy: Always
         command:
         - bash
@@ -47,9 +47,9 @@ spec:
         - name: DISCOURSE_HOSTNAME
           value: forum.kazamatsuri.org
         - name: DISCOURSE_BACKUP_HOSTNAME
-          value: d36efohndrhp2o.cloudfront.net
+          value: #d36efohndrhp2o.cloudfront.net
         - name: DISCOURSE_CDN_URL
-          value: https://d36efohndrhp2o.cloudfront.net
+          value: #https://d36efohndrhp2o.cloudfront.net
         - name: DISCOURSE_DEVELOPER_EMAILS
           value: uppfinnarn@gmail.com
         - name: DISCOURSE_DB_NAME
