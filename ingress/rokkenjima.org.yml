@@ -10,12 +10,19 @@ spec:
     hosts:
     - rokkenjima.org
     - forum.rokkenjima.org
+    - new.rokkenjima.org
   rules:
   - host: rokkenjima.org
     http:
       paths:
       - backend:
           serviceName: ghost-rokkenjima
+          servicePort: 80
+  - host: new.rokkenjima.org
+    http:
+      paths:
+      - backend:
+          serviceName: kakera
           servicePort: 80
   - host: forum.rokkenjima.org
     http:
