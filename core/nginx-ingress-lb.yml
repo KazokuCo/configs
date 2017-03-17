@@ -9,7 +9,6 @@ data:
   proxy-send-timeout: '31536000'
   hsts-include-subdomains: 'false'
   server-name-hash-bucket-size: '256'
-  ssl-redirect: 'false'
 ---
 apiVersion: v1
 kind: Service
