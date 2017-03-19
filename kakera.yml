@@ -33,7 +33,7 @@ data:
         listen       80 default_server;
         server_name  localhost;
         root         /srv/www;
-        client_max_body_size 10M;
+        client_max_body_size 64M;
 
         # Rewrite old WordPress URLs to their kakera equivalents
         rewrite "^/[0-9]{4}/[0-9]{2}/[0-9]{2}/(.*)$" "/$1" permanent;
