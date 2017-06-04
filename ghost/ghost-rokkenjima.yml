@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: ghost-rokkenjima
 data:
-  url: https://rokkenjima.org
+  url: https://old.rokkenjima.org
   
   nginx.conf: |-
     worker_processes auto;
