@@ -99,6 +99,17 @@ data:
                 host_names:
                   - forum.rokkenjima.org
                   - forum.test.rokkenjima.org
+              sandbox:
+                adapter: postgresql
+                database: ${DISCOURSE_SANDBOX_DB_NAME}
+                username: ${DISCOURSE_SANDBOX_DB_USERNAME}
+                password: ${DISCOURSE_SANDBOX_DB_PASSWORD}
+                host: ${DISCOURSE_DB_HOST}
+                pool: 50
+                timeout: 5000
+                db_id: 2
+                host_names:
+                  - sandbox.kazoku.co
         - exec: cd /var/www/discourse && sudo -E -u discourse bundle install --deployment --verbose --without test --without development
         - exec: cd /var/www/discourse && sudo -E -u discourse bundle exec rake multisite:migrate
       after_web_config:
@@ -230,6 +241,21 @@ spec:
           valueFrom:
             secretKeyRef:
               name: discourse.rokkenjima
+              key: db.password
+        - name: DISCOURSE_SANDBOX_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.sandbox
+              key: db.name
+        - name: DISCOURSE_SANDBOX_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: discourse.sandbox
+              key: db.username
+        - name: DISCOURSE_SANDBOX_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: discourse.sandbox
               key: db.password
         - name: DISCOURSE_SMTP_USERNAME
           valueFrom:

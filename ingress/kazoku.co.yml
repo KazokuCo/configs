@@ -9,6 +9,7 @@ spec:
   - secretName: kazoku.co-tls
     hosts:
     - kazoku.co
+    - sandbox.kazoku.co
     - grafana.kazoku.co
     - hooks.kazoku.co
   rules:
@@ -17,6 +18,12 @@ spec:
       paths:
       - backend:
           serviceName: default-http-backend
+          servicePort: 80
+  - host: sandbox.kazoku.co
+    http:
+      paths:
+      - backend:
+          serviceName: discourse
           servicePort: 80
   - host: grafana.kazoku.co
     http:

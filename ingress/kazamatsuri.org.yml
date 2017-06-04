@@ -10,6 +10,7 @@ spec:
     hosts:
     - kazamatsuri.org
     - forum.kazamatsuri.org
+    - test.kazamatsuri.org
     - new.kazamatsuri.org
   rules:
   - host: kazamatsuri.org
@@ -23,6 +24,12 @@ spec:
       paths:
       - backend:
           serviceName: discourse
+          servicePort: 80
+  - host: test.kazamatsuri.org
+    http:
+      paths:
+      - backend:
+          serviceName: kakera
           servicePort: 80
   - host: new.kazamatsuri.org
     http:
