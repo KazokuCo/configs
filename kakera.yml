@@ -158,7 +158,7 @@ spec:
       - name: kakera
         image: kazokuco/kakera
         imagePullPolicy: Always
-        command: ["/bin/bash", "-c", "cp -R /srv/kakera/public/static/* /srv/www/static && ./manage.py migrate && ./docker_entrypoint.sh"]
+        command: ["/bin/bash", "-c", "cp -R /srv/kakera/public/static/* /srv/www/static && ./manage.py migrate --noinput && ./docker_entrypoint.sh"]
         env:
         - name: SECRET_KEY
           valueFrom:
