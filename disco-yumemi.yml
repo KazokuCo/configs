@@ -12,7 +12,7 @@ data:
             url: https://forum.kazamatsuri.org
           - load: verification
             channel: access-requests
-            grant: Dango
+            grant: Dangos
             discourse:
               url: https://forum.kazamatsuri.org
               topic_id: 2000
