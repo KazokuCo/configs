@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: build-discourse
 data:
-  version: v1.8.0.beta11
-  suffix: "-1"
+  version: v1.9.0.beta4
+  suffix: ""
 
   web.yml: |-
     templates:
